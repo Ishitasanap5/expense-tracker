@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -15,8 +16,10 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
+
 // routes
 app.use("/expenses", expenseRoutes);
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("API running...");
