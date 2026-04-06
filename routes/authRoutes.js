@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import authMiddleware from "../middleware/authMiddleware.js"; // ✅ import it
 
 const router = express.Router();
 
@@ -10,16 +11,13 @@ router.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
     const user = new User({
       email,
       password: hashedPassword,
@@ -39,19 +37,16 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // generate JWT
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
@@ -61,6 +56,23 @@ router.post("/login", async (req, res) => {
     res.json({ token });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 🔹 Set / Update Budget
+router.put("/budget", authMiddleware, async (req, res) => {
+  try {
+    const { budget } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user,
+      { budget },
+      { new: true }
+    );
+
+    res.json({ message: "Budget updated", budget: user.budget });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

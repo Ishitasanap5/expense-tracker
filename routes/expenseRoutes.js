@@ -1,29 +1,44 @@
 import express from "express";
 import Expense from "../models/Expense.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import User from '../models/User.js';
 
 const router = express.Router();
-
 
 // ➕ Create Expense
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { amount, category, description } = req.body;
+    // 🔹 Fetch the logged-in user first
+    const user = await User.findById(req.user);
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔹 Create the expense
     const expense = new Expense({
-      amount,
-      category,
-      description,
-      user: req.user, 
+      ...req.body,
+      user: req.user,
     });
 
     const saved = await expense.save();
-    res.json(saved);
+
+    // 🔹 Calculate total spending
+    const expenses = await Expense.find({ user: req.user });
+    const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    // 🔹 Check budget and generate alert
+    let alert = null;
+    if (user.budget > 0 && total > user.budget) {
+      alert = `Warning: You exceeded your monthly budget of ${user.budget}`;
+    }
+
+    res.json({ expense: saved, alert });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // 📥 Get All Expenses
 router.get("/", authMiddleware, async (req, res) => {
@@ -34,7 +49,6 @@ router.get("/", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ✏️ Update Expense
 router.put("/:id", authMiddleware, async (req, res) => {
