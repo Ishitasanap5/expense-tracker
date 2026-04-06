@@ -26,6 +26,7 @@ app.use("/auth", authRoutes);
 app.use("/analytics", analyticsRoutes);
 app.use("/trends", trendsRoutes);
 
+
 app.get("/", (req, res) => {
   res.send("API running...");
 });

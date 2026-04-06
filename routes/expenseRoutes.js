@@ -108,5 +108,60 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// 🔁 Generate Recurring Expenses
+router.post("/recurring-generate", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user;
+    const recurringExpenses = await Expense.find({ user: userId, recurring: true });
+    const newExpenses = [];
+    const today = new Date();
+
+    for (let exp of recurringExpenses) {
+      let lastDate = new Date(exp.date);
+      let shouldCreate = false;
+
+      switch (exp.interval) {
+        case "daily":
+          shouldCreate = lastDate.toDateString() !== today.toDateString();
+          break;
+        case "weekly":
+          const lastWeek = getWeekNumber(lastDate);
+          const thisWeek = getWeekNumber(today);
+          shouldCreate = lastWeek !== thisWeek;
+          break;
+        case "monthly":
+          shouldCreate = lastDate.getMonth() !== today.getMonth() || lastDate.getFullYear() !== today.getFullYear();
+          break;
+      }
+
+      if (shouldCreate) {
+        const newExp = new Expense({
+          user: userId,
+          amount: exp.amount,
+          category: exp.category,
+          description: exp.description,
+          date: today,
+          recurring: exp.recurring,
+          interval: exp.interval,
+        });
+        await newExp.save();
+        newExpenses.push(newExp);
+      }
+    }
+
+    res.json({ message: "Recurring expenses generated", newExpenses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Helper function to calculate week number
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
 
 export default router;

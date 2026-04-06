@@ -24,6 +24,12 @@ const expenseSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    recurring: { type: Boolean, default: false },
+    interval: { 
+      type: String, 
+      enum: ["daily", "weekly", "monthly"], 
+      default: "monthly" 
+    },
   },
   {
     timestamps: true,
