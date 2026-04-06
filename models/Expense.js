@@ -18,7 +18,7 @@ const expenseSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-    // ✅ FIX: user should be INSIDE schema object
+    
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

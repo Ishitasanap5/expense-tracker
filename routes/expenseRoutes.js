@@ -14,7 +14,7 @@ router.post("/", authMiddleware, async (req, res) => {
       amount,
       category,
       description,
-      user: req.user, // ✅ comes from JWT
+      user: req.user, 
     });
 
     const saved = await expense.save();
