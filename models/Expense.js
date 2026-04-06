@@ -1,22 +1,34 @@
 import mongoose from "mongoose";
 
-const expenseSchema = new mongoose.Schema({
-  amount: {
-    type: Number,
-    required: true,
+const expenseSchema = new mongoose.Schema(
+  {
+    amount: {
+      type: Number,
+      required: true,
+    },
+    category: {
+      type: String,
+      default: "General",
+    },
+    description: {
+      type: String,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+
+    // ✅ FIX: user should be INSIDE schema object
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
-  category: {
-    type: String,
-    default: "General",
-  },
-  description: {
-    type: String,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-}, { timestamps: true });
+  {
+    timestamps: true,
+  }
+);
 
 const Expense = mongoose.model("Expense", expenseSchema);
 

@@ -4,22 +4,19 @@ const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
 
-    if (!authHeader) {
-      return res.status(401).json({ message: "No token, access denied" });
+    // Check if header exists and starts with "Bearer "
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token or incorrect format" });
     }
 
-    // ✅ Extract token after "Bearer "
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : authHeader;
+    // Extract the actual token
+    const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     req.user = decoded.userId;
 
     next();
   } catch (err) {
-    console.log(err); // 👈 add this for debugging
     res.status(401).json({ message: "Invalid token" });
   }
 };
