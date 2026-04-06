@@ -5,7 +5,7 @@ import connectDB from "./config/db.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-
+import trendsRoutes from "./routes/trendsRoutes.js";
 
 
 dotenv.config();
@@ -24,6 +24,7 @@ app.use(express.json());
 app.use("/expenses", expenseRoutes);
 app.use("/auth", authRoutes);
 app.use("/analytics", analyticsRoutes);
+app.use("/trends", trendsRoutes);
 
 app.get("/", (req, res) => {
   res.send("API running...");
